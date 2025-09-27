@@ -1,0 +1,12 @@
+For Compilation Run: 
+
+javac TrulyAdaptiveABT.java
+
+For Benchmark Run: 
+
+java MainTestRunner benchmark
+
+
+For Config:
+
+java MainTestRunner config
