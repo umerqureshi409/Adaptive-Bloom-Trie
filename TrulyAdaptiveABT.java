@@ -211,7 +211,7 @@ class FixedAdaptiveBloomFilter {
             }
             
             stats.recordResize();
-            System.out.println("Bloom Filter Correctly Resized: " + oldSize + " → " + newSize + 
+            System.out.println("Bloom Filter Correctly Resized: " + oldSize + " => " + newSize + 
                              " (Target FPR: " + String.format("%.4f", targetFPR) + ")");
         }
     }
@@ -1497,18 +1497,22 @@ class ComprehensiveResearchBenchmark {
         double meanAccuracy, stdDevAccuracy;
         double meanAdaptations, stdDevAdaptations;
     }
-    
-    private static List<String> loadDataset(String filename, List<String> fallback) {
-        try {
-            return Files.lines(Paths.get(filename))
-                        .filter(line -> !line.trim().isEmpty())
-                        .collect(Collectors.toList());
-        } catch (Exception e) {
-            System.out.println("Using fallback dataset for " + filename);
-            return fallback;
-        }
+private static List<String> loadDataset(String filename, List<String> fallback) {
+    try {
+        List<String> loaded = Files.lines(Paths.get(filename))
+                    .filter(line -> !line.trim().isEmpty())
+                    .collect(Collectors.toList());
+        
+        System.out.println("=>Successfully loaded " + loaded.size() + 
+                          " URLs from " + filename);  // ← ADD THIS
+        return loaded;
+        
+    } catch (Exception e) {
+        System.out.println("=> Could not load " + filename + ": " + e.getMessage());
+        System.out.println("=> Using " + fallback.size() + " generated fallback URLs");
+        return fallback;
     }
-    
+}
     private static List<String> generatePhishingUrls() {
         List<String> urls = new ArrayList<>();
         String[] suspiciousDomains = {
@@ -1542,7 +1546,7 @@ class ComprehensiveResearchBenchmark {
             }
         }
         
-        System.out.println("Generated " + urls.size() + " phishing URLs for testing");
+        // System.out.println("Generated " + urls.size() + " phishing URLs for testing");
         return urls;
     }
     
@@ -1575,10 +1579,10 @@ class ComprehensiveResearchBenchmark {
             }
         }
         
-        System.out.println("Generated " + urls.size() + " benign URLs for testing");
+        // System.out.println("Generated " + urls.size() + " benign URLs for testing");
         return urls;
     }
-    
+        
     private static String generateRandomString(int length) {
         String chars = "abcdefghijklmnopqrstuvwxyz0123456789";
         Random random = new Random();
