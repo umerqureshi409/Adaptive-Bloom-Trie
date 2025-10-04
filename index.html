@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABT Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+       body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0d1117;
+    min-height: 100vh;
+    padding: 20px;
+    color: #c9d1d9;
+}
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+h1 {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 2.5em;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    color: #58a6ff;
+}
+
+.subtitle {
+    text-align: center;
+    margin-bottom: 30px;
+    opacity: 0.8;
+    font-size: 1.1em;
+    color: #8b949e;
+}
+ .controls {
+    background: #161b22;
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+    border: 1px solid #30363d;
+}
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        input {
+            flex: 1;
+            min-width: 300px;
+            padding: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 1em;
+        }
+
+        input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1400px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+ .panel {
+    background: #161b22;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+}
+ .panel-header {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #58a6ff;
+    border-bottom: 2px solid #30363d;
+    padding-bottom: 10px;
+}
+        .stage-container {
+            min-height: 500px;
+            position: relative;
+        }
+
+        .stage {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .stage.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .code-snippet {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            margin: 15px 0;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .code-line {
+            padding: 2px 0;
+        }
+
+        .highlight-line {
+            background: rgba(255,215,0,0.2);
+            border-left: 3px solid #ffd700;
+            padding-left: 10px;
+            margin-left: -10px;
+        }
+
+        .keyword { color: #569cd6; }
+        .method { color: #dcdcaa; }
+        .string { color: #ce9178; }
+        .comment { color: #6a9955; }
+        .type { color: #4ec9b0; }
+        .number { color: #b5cea8; }
+
+ .visual-box {
+    background: #0d1117;
+    border: 2px solid #30363d;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 15px 0;
+}
+ .step-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #58a6ff;
+    margin-bottom: 10px;
+}
+ .step-description {
+    color: #8b949e;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+        .bloom-array {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(25px, 1fr));
+            gap: 3px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+ .bloom-bit {
+    aspect-ratio: 1;
+    border: 2px solid #30363d;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+    background: #161b22;
+    transition: all 0.3s;
+    color: #8b949e;
+}
+        .bloom-bit.set {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .bloom-bit.active {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 10px rgba(255,107,107,0.5);
+            animation: bitPulse 0.5s;
+        }
+
+        @keyframes bitPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .token-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .token {
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            font-size: 12px;
+            animation: tokenSlide 0.4s;
+        }
+
+        @keyframes tokenSlide {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+ .hash-calculation {
+    background: #1c2128;
+    border: 2px solid #30363d;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: #c9d1d9;
+}
+ .hash-step {
+    padding: 6px;
+    margin: 4px 0;
+    background: #0d1117;
+    border-radius: 4px;
+    color: #c9d1d9;
+}
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+ .info-box {
+    background: #1c2128;
+    border-left: 4px solid #58a6ff;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #c9d1d9;
+}
+
+.info-box.warning {
+    background: #1c2128;
+    border-left-color: #d29922;
+}
+
+.info-box.success {
+    background: #1c2128;
+    border-left-color: #3fb950;
+}
+
+.info-box.adaptive {
+    background: #1c2128;
+    border-left-color: #a371f7;
+}
+        .stats-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+
+        .adaptive-event {
+            background: #161b22;
+            border: 2px solid #9c27b0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            animation: eventPulse 0.6s;
+            color: #c9d1d9;
+        }
+
+        @keyframes eventPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .resize-viz {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+ .filter-box {
+    padding: 15px;
+    border: 3px solid #58a6ff;
+    border-radius: 10px;
+    text-align: center;
+    background: #161b22;
+    color: #c9d1d9;
+}
+        .filter-box.old {
+            border-color: #ff9800;
+            opacity: 0.6;
+        }
+
+        .filter-box.new {
+            border-color: #4caf50;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .arrow-right {
+            font-size: 32px;
+            color: #667eea;
+        }
+
+        .maintenance-timer {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            animation: timerBlink 2s infinite;
+        }
+
+
+        @keyframes timerBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .trie-full {
+    padding: 20px;
+    overflow-x: auto;
+    background: #0d1117;
+    border-radius: 8px;
+}
+
+.trie-level {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 15px 0;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.trie-node-box {
+    display: inline-block;
+    padding: 12px 16px;
+    background: #161b22;
+    border: 2px solid #30363d;
+    border-radius: 8px;
+    min-width: 100px;
+    text-align: center;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.trie-node-box.root {
+    background: linear-gradient(135deg, #58a6ff 0%, #1f6feb 100%);
+    border-color: #1f6feb;
+    color: white;
+}
+
+.trie-node-box.active {
+    border-color: #f85149;
+    box-shadow: 0 0 15px rgba(248,81,73,0.4);
+}
+
+.trie-node-box.leaf {
+    border-color: #3fb950;
+    background: #1c2128;
+}
+
+.trie-node-label {
+    font-size: 11px;
+    font-weight: bold;
+    color: #c9d1d9;
+    word-break: break-word;
+}
+
+.trie-node-box.root .trie-node-label {
+    color: white;
+}
+
+.trie-node-stats {
+    font-size: 9px;
+    color: #8b949e;
+    margin-top: 4px;
+}
+
+.trie-node-box.root .trie-node-stats {
+    color: rgba(255,255,255,0.8);
+}
+
+.trie-connector {
+    width: 2px;
+    height: 20px;
+    background: #30363d;
+    margin: 0 auto;
+}
+
+.trie-branch {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.trie-child-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Adaptive Bloom Trie Visualization</h1>
+        <p class="subtitle">Step-by-step walkthrough of ABT execution</p>
+
+        <div class="controls">
+            <input type="text" id="urlInput" placeholder="Enter URL (e.g., paypal-secure.com/login)" value="paypal-secure.com/login">
+            <button class="btn" onclick="startInsert()">Run INSERT</button>
+            <button class="btn" onclick="startSearch()">Run SEARCH</button>
+            <button class="btn" onclick="simulateAdaptation()">Simulate Adaptation</button>
+            <button class="btn" onclick="resetDemo()">Reset</button>
+        </div>
+
+        <div class="main-content">
+            <div class="panel">
+                <div class="panel-header">Code Execution Flow</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar" style="width: 0%">0%</div>
+                </div>
+                <div class="stage-container" id="stageContainer">
+                    <!-- Stages dynamically inserted -->
+                </div>
+                <div class="navigation">
+                    <button class="btn" id="prevBtn" onclick="previousStage()" disabled>Previous</button>
+                    <button class="btn" id="nextBtn" onclick="nextStage()">Next</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">Live Data Structures</div>
+                <div id="visualizationArea">
+                    <div style="text-align: center; padding: 50px; color: #999;">
+                   <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">⏸</div>
+<p style="color: #8b949e;">Click any button to begin visualization</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">Runtime Statistics & Adaptive Events</div>
+            <div class="stats-display" id="statsDisplay">
+                <div class="stat-card">
+                    <div class="stat-label">URLs Inserted</div>
+                    <div class="stat-value" id="statUrls">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Bloom Size</div>
+                    <div class="stat-value" id="statBloomSize">1024</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Hash Functions</div>
+                    <div class="stat-value" id="statHashCount">3</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Resize Events</div>
+                    <div class="stat-value" id="statResizes">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Split Events</div>
+                    <div class="stat-value" id="statSplits">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Current FPR</div>
+                    <div class="stat-value" id="statFPR">0.00</div>
+                </div>
+            </div>
+            <div id="adaptiveEvents" style="max-height: 200px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentStage = 0;
+        let stages = [];
+        let mode = '';
+        
+        // Accurate state matching Java implementation
+        let bloomFilter = null;
+        let bloomSize = 1024;
+        let hashCount = 3;
+        let insertedElements = 0;
+        let storedElements = [];
+        let targetFPR = 0.01;
+        let currentFPR = 0.0;
+        
+        let trieStructure = { children: new Map(), isEnd: false, urlCount: 0 };
+        let stats = { 
+            urls: 0, 
+            searches: 0, 
+            resizeEvents: 0, 
+            splitEvents: 0,
+            mergeEvents: 0,
+            tokenFrequency: new Map()
+        };
+
+        function initializeBloomFilter() {
+            bloomSize = optimalSize(50, targetFPR);
+            hashCount = optimalHashCount(bloomSize, 50);
+            bloomFilter = new Array(bloomSize).fill(0);
+            insertedElements = 0;
+            storedElements = [];
+            updateStatsDisplay();
+        }
+
+        function optimalSize(n, fpr) {
+            if (n <= 0) return 1024;
+            return Math.max(1024, Math.ceil(-n * Math.log(fpr) / (Math.log(2) * Math.log(2))));
+        }
+
+        function optimalHashCount(m, n) {
+            if (n <= 0) return 3;
+            return Math.max(1, Math.min(10, Math.round((m / n) * Math.log(2))));
+        }
+
+        // Accurate double hashing from lines 114-125
+        function computeHashes(element) {
+            let hashes = [];
+            let h1 = hashCode(element) & 0x7fffffff;
+            let h2 = ((hashCode(element) >>> 16) | 1);
+            
+            for (let i = 0; i < hashCount; i++) {
+                hashes.push((h1 + i * h2) & 0x7fffffff);
+            }
+            
+            return hashes;
+        }
+
+        function hashCode(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash = hash & hash;
+            }
+            return hash;
+        }
+
+        function updateCurrentFPR() {
+            if (insertedElements > 0 && bloomSize > 0) {
+                currentFPR = Math.pow(1 - Math.exp(-hashCount * insertedElements / bloomSize), hashCount);
+            }
+            document.getElementById('statFPR').textContent = currentFPR.toFixed(4);
+        }
+
+        // Accurate tokenization from lines 689-739
+        function tokenizeUrl(url) {
+            let tokens = [];
+            try {
+                url = url.toLowerCase().trim();
+                if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                    url = "http://" + url;
+                }
+                
+                let urlObj = new URL(url);
+                
+                if (urlObj.hostname) {
+                    tokens.push("DOMAIN:" + urlObj.hostname);
+                    urlObj.hostname.split(".").forEach(part => {
+                        if (part) tokens.push("DPART:" + part);
+                    });
+                }
+                
+                if (urlObj.pathname && urlObj.pathname !== "/") {
+                    tokens.push("PATH:" + urlObj.pathname);
+                    urlObj.pathname.split("/").forEach(part => {
+                        if (part) tokens.push("PPART:" + part);
+                    });
+                }
+                
+                if (urlObj.search) {
+                    let query = urlObj.search.substring(1);
+                    tokens.push("QUERY:" + query);
+                    query.split("&").forEach(part => {
+                        if (part) {
+                            tokens.push("QPART:" + part);
+                            if (part.includes("=")) {
+                                let key = part.split("=")[0];
+                                if (key) tokens.push("QKEY:" + key);
+                            }
+                        }
+                    });
+                }
+                
+                tokens.push("PROTO:" + urlObj.protocol.replace(":", ""));
+                if (urlObj.port) tokens.push("PORT:" + urlObj.port);
+                
+            } catch (e) {
+                let parts = url.split(/[./\-_=&?:#]/);
+                parts.forEach(part => {
+                    if (part && part.length > 1) {
+                        tokens.push("FALLBACK:" + part.toLowerCase());
+                    }
+                });
+            }
+            
+            return [...new Set(tokens)];
+        }
+function buildFullTrieVisualization(tokens, currentDepth = 0) {
+    let html = '<div class="trie-full">';
+    
+    // Root level
+    html += '<div class="trie-level">';
+    html += '<div class="trie-node-box root active">';
+    html += '<div class="trie-node-label">ROOT</div>';
+    html += `<div class="trie-node-stats">URLs: ${stats.urls}</div>`;
+    html += `<div class="trie-node-stats">Bloom: ${bloomSize} bits</div>`;
+    html += '</div></div>';
+    
+    if (tokens.length > 0) {
+        html += '<div class="trie-connector"></div>';
+        
+        // Group tokens by type
+        let domainTokens = tokens.filter(t => t.startsWith('DOMAIN:'));
+        let dpartTokens = tokens.filter(t => t.startsWith('DPART:'));
+        let pathTokens = tokens.filter(t => t.startsWith('PATH:') || t.startsWith('PPART:'));
+        let queryTokens = tokens.filter(t => t.startsWith('QUERY:') || t.startsWith('QPART:') || t.startsWith('QKEY:'));
+        let otherTokens = tokens.filter(t => t.startsWith('PROTO:') || t.startsWith('PORT:'));
+        
+        // Level 1: Domain
+        if (domainTokens.length > 0) {
+            html += '<div class="trie-level">';
+            domainTokens.forEach(token => {
+                html += `<div class="trie-node-box ${currentDepth === 1 ? 'active' : ''}">`;
+                html += `<div class="trie-node-label">${escapeHtml(token.substring(0, 25))}</div>`;
+                html += '<div class="trie-node-stats">Depth: 1</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+            
+            // Level 2: Domain parts
+            if (dpartTokens.length > 0) {
+                html += '<div class="trie-connector"></div>';
+                html += '<div class="trie-level">';
+                dpartTokens.forEach(token => {
+                    html += `<div class="trie-node-box ${currentDepth === 2 ? 'active' : ''}">`;
+                    html += `<div class="trie-node-label">${escapeHtml(token.substring(0, 25))}</div>`;
+                    html += '<div class="trie-node-stats">Depth: 2</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+        }
+        
+        // Level 3: Path
+        if (pathTokens.length > 0) {
+            html += '<div class="trie-connector"></div>';
+            html += '<div class="trie-level">';
+            pathTokens.forEach(token => {
+                html += `<div class="trie-node-box ${currentDepth === 3 ? 'active' : ''}">`;
+                html += `<div class="trie-node-label">${escapeHtml(token.substring(0, 25))}</div>`;
+                html += '<div class="trie-node-stats">Depth: 3</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+        }
+        
+        // Level 4: Query
+        if (queryTokens.length > 0) {
+            html += '<div class="trie-connector"></div>';
+            html += '<div class="trie-level">';
+            queryTokens.forEach(token => {
+                html += `<div class="trie-node-box ${currentDepth === 4 ? 'active' : ''}">`;
+                html += `<div class="trie-node-label">${escapeHtml(token.substring(0, 25))}</div>`;
+                html += '<div class="trie-node-stats">Depth: 4</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+        }
+        
+        // Level 5: Protocol/Port
+        if (otherTokens.length > 0) {
+            html += '<div class="trie-connector"></div>';
+            html += '<div class="trie-level">';
+            otherTokens.forEach(token => {
+                html += `<div class="trie-node-box leaf ${currentDepth === 5 ? 'active' : ''}">`;
+                html += `<div class="trie-node-label">${escapeHtml(token)}</div>`;
+                html += '<div class="trie-node-stats">End Node ✓</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+        }
+    }
+    
+    html += '</div>';
+    return html;
+}
+        function buildInsertStages(url) {
+            let tokens = tokenizeUrl(url);
+            stages = [];
+
+            stages.push({
+                title: "1. INSERT Entry & Validation (Line 538-540)",
+                code: `<div class="code-line"><span class="keyword">public void</span> <span class="method">insert</span>(<span class="type">String</span> url) {</div>
+<div class="code-line highlight-line">    <span class="keyword">if</span> (url == <span class="keyword">null</span> || url.trim().isEmpty()) <span class="keyword">return</span>;</div>`,
+                description: "Method entry with null/empty validation",
+                visualization: () => `<div class="info-box">Input URL: <strong>${escapeHtml(url)}</strong><br>Validation: PASSED</div>`
+            });
+
+            stages.push({
+                title: "2. URL Tokenization (Lines 541-544, 689-739)",
+                code: `<div class="code-line"><span class="type">List</span>&lt;<span class="type">String</span>&gt; tokens = <span class="method">tokenizeUrl</span>(url);</div>
+<div class="code-line"><span class="keyword">if</span> (debugMode) {</div>
+<div class="code-line">    System.out.println(<span class="string">"TOKENS: "</span> + tokens);</div>
+<div class="code-line">}</div>`,
+                description: `Tokenizes URL into ${tokens.length} structured tokens using domain parts, path segments, query parameters, protocol, and port`,
+                visualization: () => {
+                    let html = '<div class="visual-box"><div class="step-title">Extracted Tokens</div>';
+                    html += '<div class="token-display">';
+                    tokens.forEach(token => {
+                        html += `<div class="token">${escapeHtml(token)}</div>`;
+                    });
+                    html += '</div></div>';
+                    return html;
+                }
+            });
+
+            stages.push({
+                title: "3. Get Root Node (Line 549)",
+                code: `<div class="code-line highlight-line"><span class="type">FixedAdaptiveTrieNode</span> current = root;</div>`,
+                description: "Start at root node which contains the adaptive Bloom filter",
+                visualization: () => `<div class="info-box adaptive">Root node initialized with:<br>• Bloom filter size: ${bloomSize} bits<br>• Hash functions: ${hashCount}<br>• Target FPR: ${targetFPR}</div>`
+            });
+
+            tokens.forEach((token, idx) => {
+                stages.push({
+                    title: `4.${idx+1}. Insert Token into Bloom Filter (Lines 552-554, 129-138)`,
+                    code: `<div class="code-line"><span class="keyword">for</span> (<span class="type">String</span> token : tokens) {</div>
+<div class="code-line highlight-line">    current.<span class="method">insertToken</span>(token);</div>
+<div class="code-line">    <span class="comment">// Calls bloomFilter.insert() with double hashing</span></div>
+<div class="code-line">}</div>`,
+                    description: `Inserting token "${token}" using double hashing algorithm (lines 114-125)`,
+                    visualization: () => {
+                        let hashes = computeHashes(token);
+                        storedElements.push(token);
+                        insertedElements++;
+                        
+                        let html = '<div class="visual-box"><div class="step-title">Double Hashing Process</div>';
+                        html += '<div class="hash-calculation">';
+                        html += `<div><strong>Token:</strong> ${escapeHtml(token)}</div>`;
+                        html += `<div class="hash-step">h1 = hashCode("${escapeHtml(token)}") & 0x7fffffff = ${hashes[0] & 0x7fffffff}</div>`;
+                        html += `<div class="hash-step">h2 = (hashCode >>> 16) | 1 = ${((hashCode(token) >>> 16) | 1)}</div>`;
+                        
+                        hashes.forEach((h, i) => {
+                            let index = h % bloomSize;
+                            html += `<div class="hash-step">Hash[${i}] = (h1 + ${i} * h2) mod ${bloomSize} = <strong>${index}</strong></div>`;
+                            bloomFilter[index] = 1;
+                        });
+                        html += '</div>';
+                        
+                        html += `<div class="step-title">Bloom Filter State (${bloomSize} bits, showing first 128)</div>`;
+                        html += '<div class="bloom-array">';
+                        for (let i = 0; i < Math.min(128, bloomSize); i++) {
+                            let isActive = hashes.map(h => h % bloomSize).includes(i);
+                            html += `<div class="bloom-bit ${bloomFilter[i] ? 'set' : ''} ${isActive ? 'active' : ''}">${bloomFilter[i]}</div>`;
+                        }
+                        html += '</div>';
+                        if (bloomSize > 128) {
+                            html += `<div style="text-align:center;margin-top:10px;font-size:11px;color:#666;">Showing first 128 of ${bloomSize} bits</div>`;
+                        }
+                        html += '</div>';
+                        
+                        updateCurrentFPR();
+                        return html;
+                    }
+                });
+            });
+
+            stages.push({
+                title: "5. Check for Adaptive Resize (Lines 177-180)",
+                code: `<div class="code-line"><span class="method">updateFPR</span>();</div>
+<div class="code-line highlight-line"><span class="keyword">if</span> (<span class="method">shouldResize</span>()) {</div>
+<div class="code-line highlight-line">    <span class="method">correctResize</span>();</div>
+<div class="code-line">}</div>`,
+                description: "Check if Bloom filter needs resizing based on current FPR, element count, and target FPR",
+                visualization: () => {
+                    let shouldResize = (currentFPR > targetFPR * 1.5) || (insertedElements > Math.max(10, 50 / 4));
+                    
+                    let html = '<div class="visual-box"><div class="step-title">Resize Decision Logic</div>';
+                    html += '<div class="hash-calculation">';
+                    html += `<div class="hash-step">Current FPR: ${currentFPR.toFixed(4)}</div>`;
+                    html += `<div class="hash-step">Target FPR: ${targetFPR.toFixed(4)}</div>`;
+                    html += `<div class="hash-step">Threshold: ${(targetFPR * 1.5).toFixed(4)}</div>`;
+                    html += `<div class="hash-step">Inserted Elements: ${insertedElements}</div>`;
+                    html += `<div class="hash-step"><strong>Resize Needed: ${shouldResize ? 'YES' : 'NO'}</strong></div>`;
+                    html += '</div></div>';
+                    
+                    if (shouldResize) {
+                        html += performResize();
+                    }
+                    
+                    return html;
+                }
+            });
+
+            stages.push({
+                title: "6. Build Trie Structure (Lines 557-565)",
+                code: `<div class="code-line"><span class="keyword">for</span> (<span class="type">String</span> token : tokens) {</div>
+<div class="code-line highlight-line">    <span class="type">FixedAdaptiveTrieNode</span> child = current.<span class="method">getChild</span>(token);</div>
+<div class="code-line highlight-line">    <span class="keyword">if</span> (child == <span class="keyword">null</span>) {</div>
+<div class="code-line highlight-line">        child = <span class="keyword">new</span> <span class="type">FixedAdaptiveTrieNode</span>(stats);</div>
+<div class="code-line highlight-line">        current.<span class="method">addChild</span>(token, child);</div>
+<div class="code-line">    }</div>
+<div class="code-line">    current = child;</div>
+<div class="code-line">}</div>`,
+                description: "Create trie path using full tokens as keys in ConcurrentHashMap",
+                // visualization: () => {
+                //     let html = '<div class="visual-box"><div class="step-title">Trie Path Construction</div>';
+                //     html += '<div style="text-align:center;padding:20px;">';
+                    visualization: () => {
+    let html = '<div class="visual-box"><div class="step-title">Complete Trie Structure</div>';
+    html += buildFullTrieVisualization(tokens, 0);
+    html += '<div class="info-box">Full hierarchical structure: Domain → Domain Parts → Path → Query → Protocol</div>';
+    html += '</div>';
+    return html;
+                    html += '<div style="display:inline-block;padding:10px;border:3px solid #667eea;border-radius:8px;background:white;">ROOT</div>';
+                    html += '<div style="margin:10px;font-size:20px;">↓</div>';
+                    
+                    tokens.slice(0, 3).forEach((token, i) => {
+                        html += `<div style="display:inline-block;padding:10px;border:2px solid #764ba2;border-radius:8px;background:#f5f5f5;margin:5px;">`;
+                        html += `<div style="font-size:11px;">${escapeHtml(token.substring(0, 20))}</div>`;
+                        html += `<div style="font-size:9px;color:#666;">Depth ${i+1}</div>`;
+                        html += '</div>';
+                        if (i < 2) html += '<div style="margin:5px;font-size:16px;">↓</div>';
+                    });
+                    
+                    html += '</div></div>';
+                    return html;
+                }
+            });
+
+            stages.push({
+                title: "7. Mark End of URL (Lines 568-569)",
+                code: `<div class="code-line highlight-line">current.<span class="method">setEndOfUrl</span>(<span class="keyword">true</span>);</div>
+<div class="code-line">totalUrls++;</div>
+<div class="code-line">stats.<span class="method">recordInsertion</span>();</div>`,
+                description: "Mark final node as complete URL endpoint",
+                visualization: () => {
+                    stats.urls++;
+                    updateStatsDisplay();
+                    return `<div class="info-box success"><strong>INSERT Complete</strong><br><br>
+                        • Tokens in Bloom filter: ${tokens.length}<br>
+                        • Total URLs: ${stats.urls}<br>
+                        • Bloom size: ${bloomSize} bits<br>
+                        • Current FPR: ${currentFPR.toFixed(4)}</div>`;
+                }
+            });
+        }
+
+        function buildSearchStages(url) {
+            let tokens = tokenizeUrl(url);
+            stages = [];
+
+            stages.push({
+                title: "1. SEARCH Entry & Validation (Line 571-572)",
+                code: `<div class="code-line"><span class="keyword">public boolean</span> <span class="method">search</span>(<span class="type">String</span> url) {</div>
+<div class="code-line highlight-line">    <span class="keyword">if</span> (url == <span class="keyword">null</span> || url.trim().isEmpty()) <span class="keyword">return false</span>;</div>`,
+                description: "Search method entry with validation",
+                visualization: () => `<div class="info-box">Searching for: <strong>${escapeHtml(url)}</strong></div>`
+            });
+
+            stages.push({
+                title: "2. Tokenize Search URL (Line 573)",
+                code: `<div class="code-line highlight-line"><span class="type">List</span>&lt;<span class="type">String</span>&gt; tokens = <span class="method">tokenizeUrl</span>(url);</div>`,
+                description: `Tokenizes search URL into ${tokens.length} tokens using same algorithm as insert`,
+                visualization: () => {
+                    let html = '<div class="visual-box"><div class="step-title">Search Tokens</div>';
+                    html += '<div class="token-display">';
+                    tokens.forEach(token => {
+                        html += `<div class="token">${escapeHtml(token)}</div>`;
+                    });
+                    html += '</div></div>';
+                    return html;
+                }
+            });
+
+            stages.push({
+                title: "3. Bloom Filter Fast Check (Lines 578-583)",
+                code: `<div class="code-line"><span class="keyword">for</span> (<span class="type">String</span> token : tokens) {</div>
+<div class="code-line highlight-line">    <span class="keyword">if</span> (!current.<span class="method">mightContainToken</span>(token)) {</div>
+<div class="code-line highlight-line">        <span class="keyword">return false</span>; <span class="comment">// Definite negative</span></div>
+<div class="code-line">    }</div>
+<div class="code-line">}</div>`,
+                description: "Check if ALL tokens might exist using Bloom filter - if any token is missing, URL definitely doesn't exist",
+                visualization: () => {
+                    let html = '<div class="visual-box"><div class="step-title">Bloom Filter Quick Check</div>';
+                    let allPresent = true;
+                    
+                    tokens.forEach(token => {
+                        let hashes = computeHashes(token);
+                        let present = hashes.every(h => bloomFilter[h % bloomSize] === 1);
+                        allPresent = allPresent && present;
+                        
+                        html += `<div class="hash-calculation">`;
+                        html += `<strong>${escapeHtml(token)}:</strong> `;
+                        if (present) {
+                            html += '<span style="color: green;">✓ Might exist (all hash positions set)</span>';
+                        } else {
+                            html += '<span style="color: red;">✗ Definitely NOT present</span>';
+                        }
+                        html += `</div>`;
+                    });
+                    
+                    html += '</div>';
+                    
+                    if (!allPresent) {
+                        html += '<div class="info-box warning"><strong>Early Termination</strong><br>Bloom filter proves URL does not exist. No need to traverse trie.</div>';
+                    }
+                    
+                    return html;
+                }
+            });
+
+            stages.push({
+                title: "4. Traverse Trie (Lines 586-592)",
+                code: `<div class="code-line"><span class="keyword">for</span> (<span class="type">String</span> token : tokens) {</div>
+<div class="code-line highlight-line">    current = current.<span class="method">getChild</span>(token);</div>
+<div class="code-line highlight-line">    <span class="keyword">if</span> (current == <span class="keyword">null</span>) {</div>
+<div class="code-line highlight-line">        <span class="keyword">return false</span>;</div>
+<div class="code-line">    }</div>
+<div class="code-line">}</div>`,
+                description: "Follow trie path using tokens as keys. If path doesn't exist, URL not found.",
+                visualization: () => {
+                    return `<div class="info-box adaptive">Traversing trie structure token by token using ConcurrentHashMap lookups</div>`;
+                }
+            });
+
+            stages.push({
+                title: "5. Verify End Flag (Lines 594-600)",
+                code: `<div class="code-line highlight-line"><span class="keyword">boolean</span> result = current.<span class="method">isEndOfUrl</span>();</div>
+<div class="code-line"><span class="keyword">if</span> (result) {</div>
+<div class="code-line">    stats.<span class="method">recordTruePositive</span>();</div>
+<div class="code-line">} <span class="keyword">else</span> {</div>
+<div class="code-line">    stats.<span class="method">recordFalsePositive</span>();</div>
+<div class="code-line">}</div>`,
+                description: "Check if current node is marked as end of URL to avoid false positives from partial matches",
+                visualization: () => {
+                    stats.searches++;
+                    let found = storedElements.length > 0;
+                    updateStatsDisplay();
+                    return `<div class="info-box ${found ? 'success' : 'warning'}">
+                        <strong>Search Result: ${found ? 'FOUND' : 'NOT FOUND'}</strong><br><br>
+                        ${found ? 
+                            '✓ All tokens passed Bloom filter<br>✓ Trie path exists<br>✓ isEndOfUrl flag is true' :
+                            '✗ URL not in database'
+                        }
+                    </div>`;
+                }
+            });
+        }
+
+        function performResize() {
+            let oldSize = bloomSize;
+            let oldHashCount = hashCount;
+            
+            bloomSize = optimalSize(Math.max(1, storedElements.length * 2), targetFPR);
+            hashCount = optimalHashCount(bloomSize, storedElements.length);
+            
+            let html = '<div class="adaptive-event">';
+            html += '<div class="step-title">🔄 ADAPTIVE RESIZE TRIGGERED (Lines 193-216)</div>';
+            html += '<div class="resize-viz">';
+            html += `<div class="filter-box old"><strong>Old Filter</strong><br>Size: ${oldSize}<br>Hashes: ${oldHashCount}<br>Elements: ${insertedElements}</div>`;
+            html += '<div class="arrow-right">→</div>';
+            html += `<div class="filter-box new"><strong>New Filter</strong><br>Size: ${bloomSize}<br>Hashes: ${hashCount}<br>Elements: 0</div>`;
+            html += '</div>';
+            html += '<div class="hash-calculation" style="margin-top:15px;">';
+            html += '<div class="hash-step"><strong>Rehashing Process:</strong></div>';
+            html += `<div class="hash-step">• Stored ${storedElements.length} elements for rehashing</div>`;
+            html += `<div class="hash-step">• New optimal size: ${bloomSize} bits</div>`;
+            html += `<div class="hash-step">• New hash count: ${hashCount}</div>`;
+            html += '</div></div>';
+            
+            // Perform actual resize
+            let oldElements = [...storedElements];
+            bloomFilter = new Array(bloomSize).fill(0);
+            storedElements = [];
+            insertedElements = 0;
+            
+            // Rehash all elements
+            oldElements.forEach(element => {
+                let hashes = computeHashes(element);
+                hashes.forEach(h => {
+                    bloomFilter[h % bloomSize] = 1;
+                });
+                storedElements.push(element);
+                insertedElements++;
+            });
+            
+            stats.resizeEvents++;
+            updateStatsDisplay();
+            addAdaptiveEvent('RESIZE', `Filter resized from ${oldSize} to ${bloomSize} bits with ${storedElements.length} elements rehashed`);
+            
+            return html;
+        }
+
+        function simulateAdaptation() {
+            stages = [];
+            mode = 'adaptation';
+            currentStage = 0;
+
+            stages.push({
+                title: "Maintenance Timer (Lines 520-530)",
+                code: `<div class="code-line"><span class="keyword">private void</span> <span class="method">startMaintenanceTimer</span>() {</div>
+<div class="code-line">    maintenanceTimer = <span class="keyword">new</span> <span class="type">Timer</span>(<span class="keyword">true</span>);</div>
+<div class="code-line highlight-line">    maintenanceTimer.<span class="method">scheduleAtFixedRate</span>(<span class="keyword">new</span> <span class="type">TimerTask</span>() {</div>
+<div class="code-line">        <span class="keyword">public void</span> <span class="method">run</span>() {</div>
+<div class="code-line highlight-line">            <span class="method">performMaintenance</span>();</div>
+<div class="code-line">        }</div>
+<div class="code-line">    }, 30000, 30000); <span class="comment">// Every 30 seconds</span></div>
+<div class="code-line">}</div>`,
+                description: "Background maintenance timer runs every 30 seconds to check for cleanup and optimization opportunities",
+                visualization: () => {
+                    return `<div class="maintenance-timer">
+                        <div style="font-size:16px;font-weight:bold;margin-bottom:8px;">⏰ Background Maintenance Timer</div>
+                        <div>Runs every 30 seconds</div>
+                        <div>Performs: cleanup, merge operations, memory optimization</div>
+                    </div>`;
+                }
+            });
+
+            stages.push({
+                title: "System-Wide Adaptation (Lines 607-641)",
+                code: `<div class="code-line"><span class="keyword">private void</span> <span class="method">systemWideAdaptation</span>() {</div>
+<div class="code-line">    <span class="type">Runtime</span> runtime = <span class="type">Runtime</span>.<span class="method">getRuntime</span>();</div>
+<div class="code-line highlight-line">    <span class="keyword">long</span> totalMemory = runtime.<span class="method">totalMemory</span>();</div>
+<div class="code-line highlight-line">    <span class="keyword">long</span> freeMemory = runtime.<span class="method">freeMemory</span>();</div>
+<div class="code-line highlight-line">    <span class="keyword">double</span> memoryUsage = 1.0 - (<span class="keyword">double</span>) freeMemory / totalMemory;</div>
+<div class="code-line">    </div>
+<div class="code-line">    <span class="keyword">int</span> memoryPressure = (<span class="keyword">int</span>) (memoryUsage * 100);</div>
+<div class="code-line highlight-line">    <span class="method">adjustAllBloomFilters</span>(stats.<span class="method">getCurrentFPR</span>(), memoryPressure);</div>
+<div class="code-line">}</div>`,
+                description: "Triggered every 10,000 operations to adjust all Bloom filters based on memory pressure and FPR",
+                visualization: () => {
+                    let memoryPressure = 45 + Math.random() * 30;
+                    return `<div class="adaptive-event">
+                        <div class="step-title">System Adaptation Triggered</div>
+                        <div class="hash-calculation">
+                            <div class="hash-step">Memory Pressure: ${memoryPressure.toFixed(1)}%</div>
+                            <div class="hash-step">System FPR: ${currentFPR.toFixed(4)}</div>
+                            <div class="hash-step">Action: ${memoryPressure > 80 ? 'Increase target FPR to save memory' : 'Maintain current settings'}</div>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            stages.push({
+                title: "Target FPR Adjustment (Lines 196-202)",
+                code: `<div class="code-line"><span class="keyword">public void</span> <span class="method">adjustTargetFPR</span>(<span class="keyword">double</span> systemFPR, <span class="keyword">int</span> memoryPressure) {</div>
+<div class="code-line highlight-line">    <span class="keyword">if</span> (memoryPressure > 80) {</div>
+<div class="code-line highlight-line">        targetFPR = Math.<span class="method">min</span>(MAX_FPR, targetFPR * 1.3);</div>
+<div class="code-line highlight-line">    } <span class="keyword">else if</span> (systemFPR > 0.05) {</div>
+<div class="code-line highlight-line">        targetFPR = Math.<span class="method">max</span>(MIN_FPR, targetFPR * 0.7);</div>
+<div class="code-line">    }</div>
+<div class="code-line">}</div>`,
+                description: "Dynamically adjust target FPR based on memory constraints and accuracy requirements",
+                visualization: () => {
+                    let oldTarget = targetFPR;
+                    let newTarget = currentFPR > 0.03 ? Math.max(0.001, targetFPR * 0.8) : Math.min(0.05, targetFPR * 1.2);
+                    
+                    return `<div class="adaptive-event">
+                        <div class="step-title">Target FPR Adjustment</div>
+                        <div class="hash-calculation">
+                            <div class="hash-step">Old Target FPR: ${oldTarget.toFixed(4)}</div>
+                            <div class="hash-step">New Target FPR: ${newTarget.toFixed(4)}</div>
+                            <div class="hash-step">Reason: ${currentFPR > 0.03 ? 'High FPR detected, tightening target' : 'Low FPR, can relax for memory savings'}</div>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            stages.push({
+                title: "Node Split Decision (Lines 337-347)",
+                code: `<div class="code-line"><span class="keyword">private boolean</span> <span class="method">shouldSplit</span>() {</div>
+<div class="code-line">    <span class="keyword">long</span> currentTime = System.<span class="method">currentTimeMillis</span>();</div>
+<div class="code-line highlight-line">    <span class="keyword">if</span> (currentTime - lastSplitTime < SPLIT_COOLDOWN) {</div>
+<div class="code-line">        <span class="keyword">return false</span>;</div>
+<div class="code-line">    }</div>
+<div class="code-line">    </div>
+<div class="code-line highlight-line">    <span class="keyword">boolean</span> highUrlCount = (urlCount > splitThreshold);</div>
+<div class="code-line highlight-line">    <span class="keyword">boolean</span> highChildrenCount = (children.size() > MAX_CHILDREN);</div>
+<div class="code-line highlight-line">    <span class="keyword">boolean</span> highFPR = (bloomFilter.<span class="method">getCurrentFPR</span>() > 0.2);</div>
+<div class="code-line">    </div>
+<div class="code-line highlight-line">    <span class="keyword">return</span> highUrlCount && highChildrenCount && (highFPR || sufficientAccess);</div>
+<div class="code-line">}</div>`,
+                description: "Conservative split logic requires ALL conditions: high URL count, many children, high FPR or frequent access, and cooldown period elapsed",
+                visualization: () => {
+                    return `<div class="adaptive-event">
+                        <div class="step-title">Node Split Evaluation</div>
+                        <div class="hash-calculation">
+                            <div class="hash-step">✓ URL count: 150 (threshold: 150)</div>
+                            <div class="hash-step">✓ Children count: 105 (max: 100)</div>
+                            <div class="hash-step">✓ Node FPR: 0.22 (threshold: 0.2)</div>
+                            <div class="hash-step">✓ Cooldown: 12s elapsed (min: 10s)</div>
+                            <div class="hash-step"><strong>Decision: SPLIT</strong></div>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            stages.push({
+                title: "Node Split Execution (Lines 352-404)",
+                code: `<div class="code-line"><span class="keyword">private synchronized void</span> <span class="method">splitNode</span>() {</div>
+<div class="code-line">    <span class="comment">// Group children by token prefix</span></div>
+<div class="code-line highlight-line">    <span class="type">Map</span>&lt;<span class="type">String</span>, <span class="type">List</span>&gt; groups = <span class="keyword">new</span> <span class="type">HashMap</span>&lt;&gt;();</div>
+<div class="code-line">    </div>
+<div class="code-line">    <span class="keyword">for</span> (<span class="type">Entry</span> entry : children.<span class="method">entrySet</span>()) {</div>
+<div class="code-line">        <span class="type">String</span> token = entry.<span class="method">getKey</span>();</div>
+<div class="code-line highlight-line">        <span class="type">String</span> prefix = token.length() >= 3 ? token.<span class="method">substring</span>(0, 3) : token;</div>
+<div class="code-line">        groups.<span class="method">computeIfAbsent</span>(prefix, k -> <span class="keyword">new</span> <span class="type">ArrayList</span>&lt;&gt;()).<span class="method">add</span>(entry);</div>
+<div class="code-line">    }</div>
+<div class="code-line">    </div>
+<div class="code-line">    <span class="comment">// Create intermediate nodes for large groups</span></div>
+<div class="code-line highlight-line">    <span class="keyword">if</span> (group.getValue().size() > 15) {</div>
+<div class="code-line highlight-line">        <span class="type">FixedAdaptiveTrieNode</span> intermediateNode = <span class="keyword">new</span> <span class="type">FixedAdaptiveTrieNode</span>(stats);</div>
+<div class="code-line">        <span class="comment">// Redistribute children...</span></div>
+<div class="code-line">    }</div>
+<div class="code-line">}</div>`,
+                description: "Groups children by 3-character prefix and creates intermediate nodes for groups larger than 15 entries",
+                visualization: () => {
+                    stats.splitEvents++;
+                    updateStatsDisplay();
+                    addAdaptiveEvent('SPLIT', 'Node split: 105 children grouped by prefix, 4 intermediate nodes created');
+                    
+                    return `<div class="adaptive-event">
+                        <div class="step-title">Node Split Process</div>
+                        <div style="padding:15px;">
+                            <div style="margin-bottom:10px;"><strong>Before Split:</strong></div>
+                            <div style="background:#161b22;padding:10px;border-radius:5px;margin-bottom:15px;">
+                                <div>Single node with 105 children</div>
+                                <div style="font-size:11px;color:#666;">High lookup cost, high FPR</div>
+                            </div>
+                            <div style="margin-bottom:10px;"><strong>After Split:</strong></div>
+                            <div style="background:#161b22;padding:10px;border-radius:5px;">
+                                <div>4 intermediate nodes:</div>
+                                <div style="font-size:11px;color:#666;">• "DOM" prefix: 28 children</div>
+                                <div style="font-size:11px;color:#666;">• "DPA" prefix: 22 children</div>
+                                <div style="font-size:11px;color:#666;">• "PAT" prefix: 31 children</div>
+                                <div style="font-size:11px;color:#666;">• "PPA" prefix: 24 children</div>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            stages.push({
+                title: "Node Cleanup & Merge (Lines 406-428)",
+                code: `<div class="code-line"><span class="keyword">public synchronized void</span> <span class="method">cleanup</span>() {</div>
+<div class="code-line">    <span class="keyword">long</span> currentTime = System.<span class="method">currentTimeMillis</span>();</div>
+<div class="code-line">    <span class="type">List</span>&lt;<span class="type">String</span>&gt; toRemove = <span class="keyword">new</span> <span class="type">ArrayList</span>&lt;&gt;();</div>
+<div class="code-line">    </div>
+<div class="code-line">    <span class="keyword">for</span> (<span class="type">Entry</span> entry : children.<span class="method">entrySet</span>()) {</div>
+<div class="code-line">        <span class="type">FixedAdaptiveTrieNode</span> child = entry.<span class="method">getValue</span>();</div>
+<div class="code-line highlight-line">        <span class="keyword">if</span> (currentTime - child.lastAccessTime > 600000 && <span class="comment">// 10 min</span></div>
+<div class="code-line highlight-line">            child.urlCount < mergeThreshold &&</div>
+<div class="code-line highlight-line">            child.accessFrequency < 0.01) {</div>
+<div class="code-line">            </div>
+<div class="code-line highlight-line">            toRemove.<span class="method">add</span>(entry.<span class="method">getKey</span>());</div>
+<div class="code-line">        } <span class="keyword">else</span> {</div>
+<div class="code-line">            child.<span class="method">cleanup</span>();</div>
+<div class="code-line">        }</div>
+<div class="code-line">    }</div>
+<div class="code-line">}</div>`,
+                description: "Recursively removes unused nodes: no access in 10 minutes, low URL count, low access frequency",
+                visualization: () => {
+                    stats.mergeEvents += 3;
+                    updateStatsDisplay();
+                    addAdaptiveEvent('MERGE', '3 unused nodes removed: inactive for >10 minutes with low access frequency');
+                    
+                    return `<div class="adaptive-event">
+                        <div class="step-title">Cleanup & Merge Operation</div>
+                        <div class="hash-calculation">
+                            <div class="hash-step">Scanned trie recursively</div>
+                            <div class="hash-step">Found 3 nodes meeting removal criteria:</div>
+                            <div class="hash-step">• Last access > 10 minutes ago</div>
+                            <div class="hash-step">• URL count < 10</div>
+                            <div class="hash-step">• Access frequency < 0.01</div>
+                            <div class="hash-step"><strong>Result: 3 nodes merged/removed</strong></div>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            showStage(0);
+            document.getElementById('prevBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function addAdaptiveEvent(type, message) {
+            let eventsDiv = document.getElementById('adaptiveEvents');
+            let eventHtml = `<div class="adaptive-event" style="margin:10px 0;padding:10px;">
+                <strong>${type}</strong>: ${message}
+                <div style="font-size:10px;color:#666;margin-top:5px;">${new Date().toLocaleTimeString()}</div>
+            </div>`;
+            eventsDiv.innerHTML = eventHtml + eventsDiv.innerHTML;
+            
+            // Keep only last 5 events
+            while (eventsDiv.children.length > 5) {
+                eventsDiv.removeChild(eventsDiv.lastChild);
+            }
+        }
+
+        function startInsert() {
+            let url = document.getElementById('urlInput').value.trim();
+            if (!url) return;
+            
+            if (!bloomFilter) initializeBloomFilter();
+            
+            mode = 'insert';
+            currentStage = 0;
+            buildInsertStages(url);
+            showStage(0);
+        }
+
+        function startSearch() {
+            let url = document.getElementById('urlInput').value.trim();
+            if (!url) return;
+            
+            if (!bloomFilter) {
+                alert('Please insert some URLs first!');
+                return;
+            }
+            
+            mode = 'search';
+            currentStage = 0;
+            buildSearchStages(url);
+            showStage(0);
+        }
+
+        function showStage(index) {
+            if (index < 0 || index >= stages.length) return;
+            
+            currentStage = index;
+            let stage = stages[index];
+            
+            let progress = ((index + 1) / stages.length * 100).toFixed(0);
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressBar').textContent = progress + '%';
+            
+            let container = document.getElementById('stageContainer');
+            container.innerHTML = `
+                <div class="stage active">
+                    <div class="step-title">${stage.title}</div>
+                    <div class="step-description">${stage.description}</div>
+                    <div class="code-snippet">${stage.code}</div>
+                </div>
+            `;
+            
+            document.getElementById('visualizationArea').innerHTML = stage.visualization();
+            
+            document.getElementById('prevBtn').disabled = index === 0;
+            document.getElementById('nextBtn').disabled = index === stages.length - 1;
+        }
+
+        function nextStage() {
+            if (currentStage < stages.length - 1) {
+                showStage(currentStage + 1);
+            }
+        }
+
+        function previousStage() {
+            if (currentStage > 0) {
+                showStage(currentStage - 1);
+            }
+        }
+
+        function resetDemo() {
+            bloomFilter = null;
+            bloomSize = 1024;
+            hashCount = 3;
+            insertedElements = 0;
+            storedElements = [];
+            targetFPR = 0.01;
+            currentFPR = 0.0;
+            trieStructure = { children: new Map(), isEnd: false, urlCount: 0 };
+            stats = { 
+                urls: 0, 
+                searches: 0, 
+                resizeEvents: 0, 
+                splitEvents: 0,
+                mergeEvents: 0,
+                tokenFrequency: new Map()
+            };
+            currentStage = 0;
+            stages = [];
+            
+            document.getElementById('stageContainer').innerHTML = `
+                <div style="text-align: center; padding: 50px; color: #999;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">🔄</div>
+                    <p>System reset. All data structures cleared.</p>
+                </div>
+            `;
+            
+            document.getElementById('visualizationArea').innerHTML = `
+                <div style="text-align: center; padding: 50px; color: #999;">
+                    <div style="font-size: 64px; margin-bottom: 20px;">⏸</div>
+                    <p>Ready to demonstrate adaptive features</p>
+                </div>
+            `;
+            
+            document.getElementById('adaptiveEvents').innerHTML = '';
+            updateStatsDisplay();
+            
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressBar').textContent = '0%';
+            document.getElementById('prevBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = true;
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('statUrls').textContent = stats.urls;
+            document.getElementById('statBloomSize').textContent = bloomSize;
+            document.getElementById('statHashCount').textContent = hashCount;
+            document.getElementById('statResizes').textContent = stats.resizeEvents;
+            document.getElementById('statSplits').textContent = stats.splitEvents;
+            document.getElementById('statFPR').textContent = currentFPR.toFixed(4);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextStage();
+            if (e.key === 'ArrowLeft') previousStage();
+        });
+
+        // Initialize
+        initializeBloomFilter();
+    </script>
+</body>
+</html>
