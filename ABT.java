@@ -11,11 +11,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
- * COMPLETE FIXED TRULY ADAPTIVE Bloom Trie (ABT) for Phishing URL Detection
- * All major fixes implemented: Hash functions, resizing, trie structure, benchmarks
- */
+ * ADAPTIVE Bloom Trie (ABT) for Phishing URL Detection
+**/
 
-// Enhanced Adaptive Statistics Tracker
+// Adaptive Statistics Tracker
 class AdaptiveStats {
     protected AtomicLong totalInsertions = new AtomicLong(0);
     protected AtomicLong totalSearches = new AtomicLong(0);
@@ -63,8 +62,8 @@ class AdaptiveStats {
     }
 }
 
-// FIXED: Corrected Adaptive Bloom Filter with proper hashing and resizing
-class FixedAdaptiveBloomFilter {
+//Adaptive Bloom Filter with hashing and resizing
+class AdaptiveBloomFilter {
     private BitSet filter;
     private int size;
     private int hashCount;
@@ -75,20 +74,20 @@ class FixedAdaptiveBloomFilter {
     private int resizeThreshold;
     private boolean autoResize;
     private AdaptiveStats stats;
-    private Set<String> storedElements; // CRITICAL FIX: Store elements for correct resizing
+    private Set<String> storedElements; // Store elements for resizing
     
     // Adaptive parameters
     private static final double MIN_FPR = 0.001;
     private static final double MAX_FPR = 0.05;
     private static final int MIN_RESIZE_INTERVAL = 1000;
     
-    public FixedAdaptiveBloomFilter(int expectedElements, AdaptiveStats stats) {
+    public AdaptiveBloomFilter(int expectedElements, AdaptiveStats stats) {
         this.stats = stats;
         this.targetFPR = 0.01;
         this.autoResize = true;
         this.lastResizeTime = System.currentTimeMillis();
         this.resizeThreshold = Math.max(10, expectedElements / 4);
-        this.storedElements = new HashSet<>(); // CRITICAL FIX
+        this.storedElements = new HashSet<>(); 
         
         initializeFilter(expectedElements);
     }
@@ -110,7 +109,7 @@ class FixedAdaptiveBloomFilter {
         return Math.max(1, Math.min(10, (int) Math.round((double) m / n * Math.log(2))));
     }
     
-    // CRITICAL FIX: Proper double hashing implementation
+    // double hashing implementation
     private int[] computeHashes(String element) {
         int[] hashes = new int[hashCount];
         
@@ -132,7 +131,7 @@ class FixedAdaptiveBloomFilter {
         if (element == null || element.trim().isEmpty()) return;
         
         element = element.toLowerCase().trim();
-        storedElements.add(element); // CRITICAL FIX: Store for resizing
+        storedElements.add(element); // Store for resizing
         
         int[] hashes = computeHashes(element);
         for (int hash : hashes) {
@@ -143,7 +142,7 @@ class FixedAdaptiveBloomFilter {
         updateFPR();
         
         if (shouldResize()) {
-            correctResize(); // CRITICAL FIX: Use correct resizing
+            correctResize(); // Use correct resizing
         }
     }
     
@@ -178,7 +177,7 @@ class FixedAdaptiveBloomFilter {
                (currentFPR < targetFPR * 0.1 && size > 2048);
     }
     
-    // CRITICAL FIX: Correct resize implementation with rehashing
+     // resize implementation with rehashing
     private synchronized void correctResize() {
         lastResizeTime = System.currentTimeMillis();
         
@@ -211,7 +210,7 @@ class FixedAdaptiveBloomFilter {
             }
             
             stats.recordResize();
-            System.out.println("Bloom Filter Correctly Resized: " + oldSize + " => " + newSize + 
+            System.out.println("Bloom Filter Correctly Resized: " + oldSize + " → " + newSize + 
                              " (Target FPR: " + String.format("%.4f", targetFPR) + ")");
         }
     }
@@ -230,14 +229,14 @@ class FixedAdaptiveBloomFilter {
     public int getSize() { return size; }
     public int getInsertedElements() { return insertedElements; }
     public int getMemoryUsage() { 
-        return size / 8 + storedElements.size() * 50 + 64; // More accurate accounting
+        return size / 8 + storedElements.size() * 50 + 64; //accurate accounting
     }
 }
 
-// FIXED: Consistent Token-Level Trie Implementation
-class FixedAdaptiveTrieNode {
-    protected Map<String, FixedAdaptiveTrieNode> children; // Full token as key
-    protected FixedAdaptiveBloomFilter bloomFilter;
+// Consistent Token-Level Trie Implementation
+class AdaptiveTrieNode {
+    protected Map<String, AdaptiveTrieNode> children; // Full token as key
+    protected AdaptiveBloomFilter bloomFilter;
     private boolean isEndOfUrl;
     private int urlCount;
     private long lastAccessTime;
@@ -245,7 +244,7 @@ class FixedAdaptiveTrieNode {
     private double accessFrequency;
     private AdaptiveStats stats;
     
-    // FIXED: More conservative adaptive thresholds
+    // adaptive thresholds
     private int splitThreshold;
     private int mergeThreshold;
     private static final int MAX_CHILDREN = 100; // Increased threshold
@@ -253,10 +252,10 @@ class FixedAdaptiveTrieNode {
     private static final long MERGE_COOLDOWN = 300000; // 5 minutes
     private static final long SPLIT_COOLDOWN = 10000; // 10 seconds between splits
     
-    public FixedAdaptiveTrieNode(AdaptiveStats stats) {
+    public AdaptiveTrieNode(AdaptiveStats stats) {
         this.stats = stats;
         this.children = new ConcurrentHashMap<>();
-        this.bloomFilter = new FixedAdaptiveBloomFilter(50, stats);
+        this.bloomFilter = new AdaptiveBloomFilter(50, stats);
         this.isEndOfUrl = false;
         this.urlCount = 0;
         this.lastAccessTime = System.currentTimeMillis();
@@ -314,7 +313,7 @@ class FixedAdaptiveTrieNode {
         }
     }
     
-    // FIXED: Much more conservative split conditions
+    // Much more conservative split conditions
     private boolean shouldSplit() {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastSplitTime < SPLIT_COOLDOWN) {
@@ -330,7 +329,7 @@ class FixedAdaptiveTrieNode {
         return highUrlCount && highChildrenCount && (highFPR || sufficientAccess);
     }
     
-    // FIXED: Improved splitting logic with better grouping
+    // splitting logic with better grouping
     private synchronized void splitNode() {
         if (children.size() <= 5) return; // Can't split small nodes
         
@@ -338,22 +337,22 @@ class FixedAdaptiveTrieNode {
         splitThreshold = Math.min(400, splitThreshold + 100); // Increase to prevent re-splitting
         
         // Group children by token prefix for better distribution
-        Map<String, List<Map.Entry<String, FixedAdaptiveTrieNode>>> groups = new HashMap<>();
+        Map<String, List<Map.Entry<String, AdaptiveTrieNode>>> groups = new HashMap<>();
         
-        for (Map.Entry<String, FixedAdaptiveTrieNode> entry : children.entrySet()) {
+        for (Map.Entry<String, AdaptiveTrieNode> entry : children.entrySet()) {
             String token = entry.getKey();
             String prefix = token.length() >= 3 ? token.substring(0, 3) : token;
             groups.computeIfAbsent(prefix, k -> new ArrayList<>()).add(entry);
         }
         
-        Map<String, FixedAdaptiveTrieNode> newChildren = new ConcurrentHashMap<>();
+        Map<String, AdaptiveTrieNode> newChildren = new ConcurrentHashMap<>();
         boolean actuallyRestructured = false;
         
-        for (Map.Entry<String, List<Map.Entry<String, FixedAdaptiveTrieNode>>> group : groups.entrySet()) {
+        for (Map.Entry<String, List<Map.Entry<String, AdaptiveTrieNode>>> group : groups.entrySet()) {
             if (group.getValue().size() > 15) { // Create intermediate node for large groups
-                FixedAdaptiveTrieNode intermediateNode = new FixedAdaptiveTrieNode(stats);
+                AdaptiveTrieNode intermediateNode = new AdaptiveTrieNode(stats);
                 
-                for (Map.Entry<String, FixedAdaptiveTrieNode> child : group.getValue()) {
+                for (Map.Entry<String, AdaptiveTrieNode> child : group.getValue()) {
                     String originalKey = child.getKey();
                     String newKey = originalKey.length() > 3 ? originalKey.substring(3) : originalKey;
                     if (newKey.isEmpty()) newKey = "_end_"; // Handle empty keys
@@ -365,7 +364,7 @@ class FixedAdaptiveTrieNode {
                 actuallyRestructured = true;
             } else {
                 // Keep small groups as-is
-                for (Map.Entry<String, FixedAdaptiveTrieNode> child : group.getValue()) {
+                for (Map.Entry<String, AdaptiveTrieNode> child : group.getValue()) {
                     newChildren.put(child.getKey(), child.getValue());
                 }
             }
@@ -382,13 +381,13 @@ class FixedAdaptiveTrieNode {
         }
     }
     
-    public synchronized boolean tryMerge(FixedAdaptiveTrieNode parent) {
+    public synchronized boolean tryMerge(AdaptiveTrieNode parent) {
         if (urlCount > mergeThreshold) return false;
         if (System.currentTimeMillis() - lastAccessTime < MERGE_COOLDOWN) return false;
         if (accessFrequency > MIN_ACCESS_FREQUENCY) return false;
         
         // Merge this node into parent
-        for (Map.Entry<String, FixedAdaptiveTrieNode> child : children.entrySet()) {
+        for (Map.Entry<String, AdaptiveTrieNode> child : children.entrySet()) {
             parent.children.put(child.getKey(), child.getValue());
         }
         
@@ -401,8 +400,8 @@ class FixedAdaptiveTrieNode {
         long currentTime = System.currentTimeMillis();
         List<String> toRemove = new ArrayList<>();
         
-        for (Map.Entry<String, FixedAdaptiveTrieNode> entry : children.entrySet()) {
-            FixedAdaptiveTrieNode child = entry.getValue();
+        for (Map.Entry<String, AdaptiveTrieNode> entry : children.entrySet()) {
+            AdaptiveTrieNode child = entry.getValue();
             if (currentTime - child.lastAccessTime > 600000 && // 10 minutes unused
                 child.urlCount < mergeThreshold &&
                 child.accessFrequency < 0.01) {
@@ -420,11 +419,11 @@ class FixedAdaptiveTrieNode {
     }
     
     // Getters and setters
-    public FixedAdaptiveTrieNode getChild(String token) {
+    public AdaptiveTrieNode getChild(String token) {
         return children.get(token);
     }
     
-    public void addChild(String token, FixedAdaptiveTrieNode node) {
+    public void addChild(String token, AdaptiveTrieNode node) {
         children.put(token, node);
     }
     
@@ -434,20 +433,20 @@ class FixedAdaptiveTrieNode {
     public double getAccessFrequency() { return accessFrequency; }
     public int getSplitThreshold() { return splitThreshold; }
     public int getMergeThreshold() { return mergeThreshold; }
-    public Map<String, FixedAdaptiveTrieNode> getChildren() { return new HashMap<>(children); }
+    public Map<String, AdaptiveTrieNode> getChildren() { return new HashMap<>(children); }
     
     public int getMemoryUsage() {
         int memory = bloomFilter.getMemoryUsage() + 128;
-        for (FixedAdaptiveTrieNode child : children.values()) {
+        for (AdaptiveTrieNode child : children.values()) {
             memory += child.getMemoryUsage();
         }
         return memory;
     }
 }
 
-// FIXED: Main Truly Adaptive Bloom Trie
-public class TrulyAdaptiveABT {
-    private FixedAdaptiveTrieNode root;
+// Adaptive Bloom Trie
+public class ABT {
+    private AdaptiveTrieNode root;
     private int totalUrls;
     private AdaptiveStats stats;
     private boolean debugMode;
@@ -459,13 +458,13 @@ public class TrulyAdaptiveABT {
     private int adaptationInterval = 10000;
     private AtomicInteger operationCount = new AtomicInteger(0);
     
-    public TrulyAdaptiveABT() {
+    public ABT() {
         this(false);
     }
     
-    public TrulyAdaptiveABT(boolean debugMode) {
+    public ABT(boolean debugMode) {
         this.stats = new AdaptiveStats();
-        this.root = new FixedAdaptiveTrieNode(stats);
+        this.root = new AdaptiveTrieNode(stats);
         this.totalUrls = 0;
         this.debugMode = debugMode;
         this.lastCleanupTime = System.currentTimeMillis();
@@ -473,7 +472,7 @@ public class TrulyAdaptiveABT {
         startMaintenanceTimer();
         
         if (debugMode) {
-            System.out.println("Fixed Truly Adaptive ABT initialized with maintenance timer");
+            System.out.println("ABT initialized with maintenance timer");
         }
     }
     
@@ -487,7 +486,7 @@ public class TrulyAdaptiveABT {
         }, 30000, 30000);
     }
     
-    // FIXED: Consistent token-level insertion
+    // Consistent token-level insertion
     public void insert(String url) {
         if (url == null || url.trim().isEmpty()) return;
         
@@ -497,7 +496,7 @@ public class TrulyAdaptiveABT {
             System.out.println("TOKENS: " + tokens);
         }
         
-        FixedAdaptiveTrieNode current = root;
+        AdaptiveTrieNode current = root;
         
         // Insert all tokens into root's bloom filter first
         for (String token : tokens) {
@@ -507,9 +506,9 @@ public class TrulyAdaptiveABT {
         // Traverse/build trie structure using full tokens
         for (String token : tokens) {
             if (token.length() > 0) {
-                FixedAdaptiveTrieNode child = current.getChild(token);
+                AdaptiveTrieNode child = current.getChild(token);
                 if (child == null) {
-                    child = new FixedAdaptiveTrieNode(stats);
+                    child = new AdaptiveTrieNode(stats);
                     current.addChild(token, child);
                 }
                 current = child;
@@ -525,12 +524,12 @@ public class TrulyAdaptiveABT {
         }
     }
     
-    // FIXED: Consistent token-level search
+    // Consistent token-level search
     public boolean search(String url) {
         if (url == null || url.trim().isEmpty()) return false;
         
         List<String> tokens = tokenizeUrl(url);
-        FixedAdaptiveTrieNode current = root;
+        AdaptiveTrieNode current = root;
         
         stats.recordSearch();
         
@@ -592,10 +591,10 @@ public class TrulyAdaptiveABT {
         adjustNodeBloomFilters(root, systemFPR, memoryPressure);
     }
     
-    private void adjustNodeBloomFilters(FixedAdaptiveTrieNode node, double systemFPR, int memoryPressure) {
+    private void adjustNodeBloomFilters(AdaptiveTrieNode node, double systemFPR, int memoryPressure) {
         node.bloomFilter.adjustTargetFPR(systemFPR, memoryPressure);
         
-        for (FixedAdaptiveTrieNode child : node.getChildren().values()) {
+        for (AdaptiveTrieNode child : node.getChildren().values()) {
             adjustNodeBloomFilters(child, systemFPR, memoryPressure);
         }
     }
@@ -623,7 +622,7 @@ public class TrulyAdaptiveABT {
         operationCount.set(0);
     }
     
-    // FIXED: Enhanced tokenization with consistent approach
+    // tokenization with consistent approach
     private List<String> tokenizeUrl(String url) {
         List<String> tokens = new ArrayList<>();
         
@@ -695,7 +694,7 @@ public class TrulyAdaptiveABT {
                     .collect(Collectors.toList());
     }
     
-    // Enhanced getters
+    // getters
     public int getTotalUrls() { return totalUrls; }
     public int getMemoryUsage() { return root.getMemoryUsage(); }
     public AdaptiveStats getStats() { return stats; }
@@ -728,7 +727,7 @@ public class TrulyAdaptiveABT {
         return getNodeStatistics(root, 0);
     }
     
-    private Map<String, Object> getNodeStatistics(FixedAdaptiveTrieNode node, int depth) {
+    private Map<String, Object> getNodeStatistics(AdaptiveTrieNode node, int depth) {
         Map<String, Object> nodeStats = new HashMap<>();
         
         nodeStats.put("depth", depth);
@@ -740,7 +739,7 @@ public class TrulyAdaptiveABT {
         nodeStats.put("mergeThreshold", node.getMergeThreshold());
         
         List<Map<String, Object>> childrenStats = new ArrayList<>();
-        for (FixedAdaptiveTrieNode child : node.getChildren().values()) {
+        for (AdaptiveTrieNode child : node.getChildren().values()) {
             childrenStats.add(getNodeStatistics(child, depth + 1));
         }
         nodeStats.put("children", childrenStats);
@@ -797,7 +796,7 @@ public class TrulyAdaptiveABT {
         }
     }
     
-    // FIXED: Enhanced Benchmark with proper baseline implementations
+    // Benchmark with proper baseline implementations
     public static class AdaptiveBenchmark {
         
         public static void main(String[] args) {
@@ -805,7 +804,7 @@ public class TrulyAdaptiveABT {
                 List<String> phishingUrls = loadPhishingUrls();
                 List<String> benignUrls = loadBenignUrls();
                 
-                System.out.println("=== FIXED TRULY ADAPTIVE ABT BENCHMARK ===");
+                System.out.println("=== Adaptive Bloom Trie (ABT) BENCHMARK ===");
                 System.out.println("Loaded " + phishingUrls.size() + " phishing URLs");
                 System.out.println("Loaded " + benignUrls.size() + " benign URLs");
                 
@@ -817,9 +816,9 @@ public class TrulyAdaptiveABT {
         }
         
         private static void runAdaptiveBenchmark(List<String> phishingUrls, List<String> benignUrls) {
-            System.out.println("\n=== FIXED ADAPTIVE ABT PERFORMANCE ===");
+            System.out.println("\n=== Adaptive Bloom Trie (ABT) PERFORMANCE ===");
             
-            TrulyAdaptiveABT abt = new TrulyAdaptiveABT(true);
+            ABT abt = new ABT(true);
             
             try {
                 long startTime = System.nanoTime();
@@ -862,7 +861,7 @@ public class TrulyAdaptiveABT {
                 double fpr = benignUrls.size() > 0 ? (double) falsePositives / benignUrls.size() * 100 : 0.0;
                 double accuracy = phishingUrls.size() > 0 ? (double) correctDetections / phishingUrls.size() * 100 : 0.0;
                 
-                System.out.println("\n=== FIXED ADAPTIVE ABT RESULTS ===");
+                System.out.println("\n=== ABT RESULTS ===");
                 System.out.printf("Memory Usage: %d KB\n", abt.getMemoryUsage() / 1024);
                 System.out.printf("Insertion Time: %.2f ms\n", insertionTime / 1_000_000.0);
                 
@@ -961,7 +960,7 @@ public class TrulyAdaptiveABT {
     // Workload Simulator
     public static class WorkloadSimulator {
         
-        public static void simulateBurstWorkload(TrulyAdaptiveABT abt, List<String> urls) {
+        public static void simulateBurstWorkload(ABT abt, List<String> urls) {
             System.out.println("=== BURST WORKLOAD SIMULATION ===");
             
             for (int i = 0; i < urls.size(); i += 1000) {
@@ -988,7 +987,7 @@ public class TrulyAdaptiveABT {
             }
         }
         
-        public static void simulateStreamingWorkload(TrulyAdaptiveABT abt, List<String> urls) {
+        public static void simulateStreamingWorkload(ABT abt, List<String> urls) {
             System.out.println("=== STREAMING WORKLOAD SIMULATION ===");
             
             long startTime = System.currentTimeMillis();
@@ -1019,7 +1018,7 @@ public class TrulyAdaptiveABT {
             }
         }
         
-        public static void simulateMixedWorkload(TrulyAdaptiveABT abt, List<String> insertUrls, List<String> searchUrls) {
+        public static void simulateMixedWorkload(ABT abt, List<String> insertUrls, List<String> searchUrls) {
             System.out.println("=== MIXED WORKLOAD SIMULATION ===");
             
             Random random = new Random(42);
@@ -1048,7 +1047,7 @@ public class TrulyAdaptiveABT {
     }
 }
 
-// FIXED: Standard Bloom Filter for comparison
+// Standard Bloom Filter for comparison
 class StandardBloomFilter {
     private BitSet filter;
     private int size;
@@ -1108,7 +1107,7 @@ class StandardBloomFilter {
     }
 }
 
-// FIXED: Standard Trie for comparison
+// Standard Trie for comparison
 class StandardTrie {
     private StandardTrieNode root;
     private int nodeCount;
@@ -1196,8 +1195,8 @@ class StandardTrie {
     }
 }
 
-// FIXED: Comprehensive Research Benchmark
-class ComprehensiveResearchBenchmark {
+//  Research Benchmark
+class ResearchBenchmark {
     
     public static class BenchmarkResults {
         public double avgInsertionTime;
@@ -1216,7 +1215,7 @@ class ComprehensiveResearchBenchmark {
     }
     
     public static void runComprehensiveBenchmark() {
-        System.out.println("=== COMPREHENSIVE RESEARCH BENCHMARK ===");
+        System.out.println("=== RESEARCH BENCHMARK ===");
         
         try {
             List<String> phishingUrls = loadDataset("phishing_urls.txt", generatePhishingUrls());
@@ -1228,7 +1227,7 @@ class ComprehensiveResearchBenchmark {
             for (int run = 0; run < numRuns; run++) {
                 System.out.println("\n=== RUN " + (run + 1) + " ===");
                 
-                allResults.computeIfAbsent("AdaptiveABT", k -> new ArrayList<>())
+                allResults.computeIfAbsent("ABT", k -> new ArrayList<>())
                           .add(benchmarkAdaptiveABT(phishingUrls, benignUrls));
                 
                 allResults.computeIfAbsent("StandardBloomFilter", k -> new ArrayList<>())
@@ -1252,9 +1251,9 @@ class ComprehensiveResearchBenchmark {
     }
     
     private static BenchmarkResults benchmarkAdaptiveABT(List<String> phishingUrls, List<String> benignUrls) {
-        System.out.println("Benchmarking Adaptive ABT...");
+        System.out.println("Benchmarking ABT...");
         
-        TrulyAdaptiveABT abt = new TrulyAdaptiveABT(false);
+        ABT abt = new ABT(false);
         BenchmarkResults results = new BenchmarkResults();
         
         long startTime = System.nanoTime();
@@ -1504,7 +1503,7 @@ private static List<String> loadDataset(String filename, List<String> fallback) 
                     .collect(Collectors.toList());
         
         System.out.println("=>Successfully loaded " + loaded.size() + 
-                          " URLs from " + filename);  // ← ADD THIS
+                          " URLs from " + filename);  
         return loaded;
         
     } catch (Exception e) {
@@ -1593,9 +1592,9 @@ private static List<String> loadDataset(String filename, List<String> fallback) 
         return sb.toString();
     }
     
-    // Main method for running comprehensive benchmarks
+    // Main method for running benchmarks
     public static void main(String[] args) {
-        System.out.println("Starting Comprehensive Research Benchmark...");
+        System.out.println("Starting Research Benchmark...");
         runComprehensiveBenchmark();
     }
 }
@@ -1606,7 +1605,7 @@ class ResearchUtilities {
     // Memory profiler for detailed analysis
     public static class MemoryProfiler {
         
-        public static void profileMemoryUsage(TrulyAdaptiveABT abt, List<String> urls) {
+        public static void profileMemoryUsage(ABT abt, List<String> urls) {
             System.out.println("=== MEMORY PROFILING ===");
             
             Runtime runtime = Runtime.getRuntime();
@@ -1665,7 +1664,7 @@ class ResearchUtilities {
     // Adaptation behavior analyzer
     public static class AdaptationAnalyzer {
         
-        public static void analyzeAdaptationBehavior(TrulyAdaptiveABT abt, List<String> urls) {
+        public static void analyzeAdaptationBehavior(ABT abt, List<String> urls) {
             System.out.println("=== ADAPTATION BEHAVIOR ANALYSIS ===");
             
             List<Integer> resizeEvents = new ArrayList<>();
@@ -1731,7 +1730,7 @@ class ResearchUtilities {
                 System.out.printf("\nTesting FPR target: %.3f\n", fprTarget);
                 
                 long startTime = System.nanoTime();
-                TrulyAdaptiveABT abt = new TrulyAdaptiveABT(false);
+                ABT abt = new ABT(false);
                 
                 // Insert all URLs
                 for (String url : phishingUrls) {
@@ -1796,17 +1795,17 @@ class MainTestRunner {
             
             switch (args[0].toLowerCase()) {
                 case "benchmark":
-                    ComprehensiveResearchBenchmark.runComprehensiveBenchmark();
+                    ResearchBenchmark.runComprehensiveBenchmark();
                     break;
                     
                 case "profile":
-                    TrulyAdaptiveABT abt1 = new TrulyAdaptiveABT(true);
+                    ABT abt1 = new ABT(true);
                     ResearchUtilities.MemoryProfiler.profileMemoryUsage(abt1, phishingUrls);
                     abt1.shutdown();
                     break;
                     
                 case "adaptation":
-                    TrulyAdaptiveABT abt2 = new TrulyAdaptiveABT(true);
+                    ABT abt2 = new ABT(true);
                     ResearchUtilities.AdaptationAnalyzer.analyzeAdaptationBehavior(abt2, phishingUrls);
                     abt2.shutdown();
                     break;
@@ -1816,11 +1815,11 @@ class MainTestRunner {
                     break;
                     
                 case "workload":
-                    TrulyAdaptiveABT abt3 = new TrulyAdaptiveABT(true);
+                    ABT abt3 = new ABT(true);
                     System.out.println("Running workload simulations...");
-                    TrulyAdaptiveABT.WorkloadSimulator.simulateBurstWorkload(abt3, phishingUrls.subList(0, 5000));
-                    TrulyAdaptiveABT.WorkloadSimulator.simulateStreamingWorkload(abt3, phishingUrls.subList(5000, 10000));
-                    TrulyAdaptiveABT.WorkloadSimulator.simulateMixedWorkload(abt3, 
+                    ABT.WorkloadSimulator.simulateBurstWorkload(abt3, phishingUrls.subList(0, 5000));
+                    ABT.WorkloadSimulator.simulateStreamingWorkload(abt3, phishingUrls.subList(5000, 10000));
+                    ABT.WorkloadSimulator.simulateMixedWorkload(abt3, 
                         phishingUrls.subList(10000, 15000), benignUrls.subList(0, 5000));
                     abt3.shutdown();
                     break;
