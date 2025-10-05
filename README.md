@@ -1,8 +1,8 @@
-# TrulyAdaptiveABT.java — Comprehensive Summary & Explanation
+# ABT.java — Comprehensive Summary & Explanation
 
 ## Overview
 
-This file implements a **Truly Adaptive Bloom Trie (ABT)** for phishing URL detection. It combines the strengths of tries and adaptive Bloom filters, providing a scalable, memory-efficient, and adaptive data structure for fast set membership queries, especially suited for large, evolving datasets like phishing URLs.
+This file implements a **Adaptive Bloom Trie (ABT)** for phishing URL detection. It combines the strengths of tries and adaptive Bloom filters, providing a scalable, memory-efficient, and adaptive data structure for fast set membership queries, especially suited for large, evolving datasets like phishing URLs.
 
 ---
 
@@ -15,7 +15,7 @@ This file implements a **Truly Adaptive Bloom Trie (ABT)** for phishing URL dete
 
 ---
 
-### 2. **FixedAdaptiveBloomFilter**
+### 2. **AdaptiveBloomFilter**
 - **Purpose:** Adaptive Bloom filter that resizes itself and tunes its false positive rate (FPR) based on usage and memory pressure.
 - **Key Features:**
   - Stores all inserted elements for correct resizing (rehashing).
@@ -26,7 +26,7 @@ This file implements a **Truly Adaptive Bloom Trie (ABT)** for phishing URL dete
 
 ---
 
-### 3. **FixedAdaptiveTrieNode**
+### 3. **AdaptiveTrieNode**
 - **Purpose:** Trie node with an adaptive Bloom filter and logic for splitting/merging nodes based on usage.
 - **Key Features:**
   - Each node tracks its own stats and adapts thresholds.
@@ -37,7 +37,7 @@ This file implements a **Truly Adaptive Bloom Trie (ABT)** for phishing URL dete
 
 ---
 
-### 4. **TrulyAdaptiveABT**
+### 4. **ABT**
 - **Purpose:** The main ABT structure, managing the root node, adaptation, insertion/search, and periodic maintenance.
 - **Key Features:**
   - Tokenizes URLs into meaningful parts (domain, path, query, etc.).
@@ -56,7 +56,7 @@ This file implements a **Truly Adaptive Bloom Trie (ABT)** for phishing URL dete
 
 ---
 
-### 6. **ComprehensiveResearchBenchmark**
+### 6. **ResearchBenchmark**
 - **Purpose:** Runs benchmarks comparing ABT, Bloom filter, HashSet, and Trie on phishing/benign URLs.
 - **Strength:** Provides empirical evidence of ABT's performance and memory usage.
 - **Weakness:** Benchmarking code can be slow for very large datasets.
@@ -131,4 +131,4 @@ This file implements a **Truly Adaptive Bloom Trie (ABT)** for phishing URL dete
 
 ## Final Thoughts
 
-The **Truly Adaptive ABT** is a sophisticated, research-grade data structure that balances memory, speed, and adaptability for large, redundant, and evolving datasets. It is best used in scenarios where these trade-offs are justified and where detailed statistics and adaptation are valuable.
+The **ABT** is a sophisticated, research-grade data structure that balances memory, speed, and adaptability for large, redundant, and evolving datasets. It is best used in scenarios where these trade-offs are justified and where detailed statistics and adaptation are valuable.
