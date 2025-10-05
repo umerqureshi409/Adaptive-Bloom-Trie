@@ -28,7 +28,7 @@ h1 {
     margin-bottom: 10px;
     font-size: 2.5em;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    color: #58a6ff;
+    color: #50C878;
 }
 
 .subtitle {
@@ -52,7 +52,7 @@ h1 {
 }
         .btn {
             padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #50C878 0%, #00674F 100%);
             border: none;
             border-radius: 8px;
             color: white;
@@ -111,7 +111,7 @@ h1 {
     font-size: 1.5em;
     font-weight: bold;
     margin-bottom: 15px;
-    color: #58a6ff;
+    color: #50C878;
     border-bottom: 2px solid #30363d;
     padding-bottom: 10px;
 }
@@ -176,7 +176,7 @@ h1 {
  .step-title {
     font-size: 1.2em;
     font-weight: bold;
-    color: #58a6ff;
+    color: #50C878;
     margin-bottom: 10px;
 }
  .step-description {
@@ -207,9 +207,9 @@ h1 {
     color: #8b949e;
 }
         .bloom-bit.set {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #50C878 0%, #00674F 100%);
             color: white;
-            border-color: #667eea;
+            border-color: #50C878;
         }
 
         .bloom-bit.active {
@@ -232,7 +232,7 @@ h1 {
 
         .token {
             padding: 6px 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #50C878 0%, #00674F 100%);
             color: white;
             border-radius: 15px;
             font-size: 12px;
@@ -272,7 +272,7 @@ h1 {
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(90deg, #50C878 0%, #00674F 100%);
             transition: width 0.5s;
             display: flex;
             align-items: center;
@@ -289,7 +289,7 @@ h1 {
 
  .info-box {
     background: #1c2128;
-    border-left: 4px solid #58a6ff;
+    border-left: 4px solid #50C878;
     padding: 15px;
     margin: 15px 0;
     border-radius: 4px;
@@ -319,7 +319,7 @@ h1 {
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #50C878 0%, #00674F 100%);
             color: white;
             padding: 12px;
             border-radius: 10px;
@@ -361,7 +361,7 @@ h1 {
 
  .filter-box {
     padding: 15px;
-    border: 3px solid #58a6ff;
+    border: 3px solid #50C878;
     border-radius: 10px;
     text-align: center;
     background: #161b22;
@@ -384,7 +384,7 @@ h1 {
 
         .arrow-right {
             font-size: 32px;
-            color: #667eea;
+            color: #50C878;
         }
 
         .maintenance-timer {
@@ -430,7 +430,7 @@ h1 {
 }
 
 .trie-node-box.root {
-    background: linear-gradient(135deg, #58a6ff 0%, #1f6feb 100%);
+    background: linear-gradient(135deg, #50C878 0%, #1f6feb 100%);
     border-color: #1f6feb;
     color: white;
 }
@@ -683,96 +683,49 @@ h1 {
             
             return [...new Set(tokens)];
         }
-function buildFullTrieVisualization(tokens, currentDepth = 0) {
+function buildFullTrieVisualization(tokens, currentDepth = -1) {
     let html = '<div class="trie-full">';
     
     // Root level
     html += '<div class="trie-level">';
-    html += '<div class="trie-node-box root active">';
+    html += '<div class="trie-node-box root ' + (currentDepth === 0 ? 'active' : '') + '">';
     html += '<div class="trie-node-label">ROOT</div>';
     html += `<div class="trie-node-stats">URLs: ${stats.urls}</div>`;
     html += `<div class="trie-node-stats">Bloom: ${bloomSize} bits</div>`;
     html += '</div></div>';
     
+    // Sequential path - each token is a child of the previous
     if (tokens.length > 0) {
-        html += '<div class="trie-connector"></div>';
-        
-        // Group tokens by type
-        let domainTokens = tokens.filter(t => t.startsWith('DOMAIN:'));
-        let dpartTokens = tokens.filter(t => t.startsWith('DPART:'));
-        let pathTokens = tokens.filter(t => t.startsWith('PATH:') || t.startsWith('PPART:'));
-        let queryTokens = tokens.filter(t => t.startsWith('QUERY:') || t.startsWith('QPART:') || t.startsWith('QKEY:'));
-        let otherTokens = tokens.filter(t => t.startsWith('PROTO:') || t.startsWith('PORT:'));
-        
-        // Level 1: Domain
-        if (domainTokens.length > 0) {
+        tokens.forEach((token, index) => {
+            html += '<div class="trie-connector"></div>';
             html += '<div class="trie-level">';
-            domainTokens.forEach(token => {
-                html += `<div class="trie-node-box ${currentDepth === 1 ? 'active' : ''}">`;
-                html += `<div class="trie-node-label">${escapeHtml(token.substring(0, 25))}</div>`;
-                html += '<div class="trie-node-stats">Depth: 1</div>';
-                html += '</div>';
-            });
-            html += '</div>';
             
-            // Level 2: Domain parts
-            if (dpartTokens.length > 0) {
-                html += '<div class="trie-connector"></div>';
-                html += '<div class="trie-level">';
-                dpartTokens.forEach(token => {
-                    html += `<div class="trie-node-box ${currentDepth === 2 ? 'active' : ''}">`;
-                    html += `<div class="trie-node-label">${escapeHtml(token.substring(0, 25))}</div>`;
-                    html += '<div class="trie-node-stats">Depth: 2</div>';
-                    html += '</div>';
-                });
-                html += '</div>';
-            }
-        }
-        
-        // Level 3: Path
-        if (pathTokens.length > 0) {
-            html += '<div class="trie-connector"></div>';
-            html += '<div class="trie-level">';
-            pathTokens.forEach(token => {
-                html += `<div class="trie-node-box ${currentDepth === 3 ? 'active' : ''}">`;
-                html += `<div class="trie-node-label">${escapeHtml(token.substring(0, 25))}</div>`;
-                html += '<div class="trie-node-stats">Depth: 3</div>';
-                html += '</div>';
-            });
-            html += '</div>';
-        }
-        
-        // Level 4: Query
-        if (queryTokens.length > 0) {
-            html += '<div class="trie-connector"></div>';
-            html += '<div class="trie-level">';
-            queryTokens.forEach(token => {
-                html += `<div class="trie-node-box ${currentDepth === 4 ? 'active' : ''}">`;
-                html += `<div class="trie-node-label">${escapeHtml(token.substring(0, 25))}</div>`;
-                html += '<div class="trie-node-stats">Depth: 4</div>';
-                html += '</div>';
-            });
-            html += '</div>';
-        }
-        
-        // Level 5: Protocol/Port
-        if (otherTokens.length > 0) {
-            html += '<div class="trie-connector"></div>';
-            html += '<div class="trie-level">';
-            otherTokens.forEach(token => {
-                html += `<div class="trie-node-box leaf ${currentDepth === 5 ? 'active' : ''}">`;
-                html += `<div class="trie-node-label">${escapeHtml(token)}</div>`;
+            let isActive = (currentDepth === index + 1);
+            let isLast = (index === tokens.length - 1);
+            
+            html += `<div class="trie-node-box ${isLast ? 'leaf' : ''} ${isActive ? 'active' : ''}">`;
+            html += `<div class="trie-node-label">${escapeHtml(token.substring(0, 25))}</div>`;
+            html += `<div class="trie-node-stats">Depth: ${index + 1}</div>`;
+            
+            if (isLast) {
                 html += '<div class="trie-node-stats">End Node ✓</div>';
-                html += '</div>';
-            });
-            html += '</div>';
-        }
+            }
+            
+            html += '</div></div>';
+        });
     }
+    
+    html += '<div class="info-box" style="margin-top: 20px;">';
+    html += '<strong>Sequential Path Structure:</strong><br>';
+    html += 'Each URL creates a single path where tokens are chained sequentially.<br>';
+    html += 'All tokens are stored in ROOT\'s Bloom filter for fast negative lookups.';
+    html += '</div>';
     
     html += '</div>';
     return html;
 }
-        function buildInsertStages(url) {
+
+function buildInsertStages(url) {
             let tokens = tokenizeUrl(url);
             stages = [];
 
@@ -895,16 +848,16 @@ function buildFullTrieVisualization(tokens, currentDepth = 0) {
                 //     let html = '<div class="visual-box"><div class="step-title">Trie Path Construction</div>';
                 //     html += '<div style="text-align:center;padding:20px;">';
                     visualization: () => {
-    let html = '<div class="visual-box"><div class="step-title">Complete Trie Structure</div>';
-    html += buildFullTrieVisualization(tokens, 0);
-    html += '<div class="info-box">Full hierarchical structure: Domain → Domain Parts → Path → Query → Protocol</div>';
+    let html = '<div class="visual-box"><div class="step-title">Sequential Trie Path</div>';
+    html += buildFullTrieVisualization(tokens, tokens.length);
     html += '</div>';
     return html;
-                    html += '<div style="display:inline-block;padding:10px;border:3px solid #667eea;border-radius:8px;background:white;">ROOT</div>';
+
+                    html += '<div style="display:inline-block;padding:10px;border:3px solid #50C878;border-radius:8px;background:white;">ROOT</div>';
                     html += '<div style="margin:10px;font-size:20px;">↓</div>';
                     
                     tokens.slice(0, 3).forEach((token, i) => {
-                        html += `<div style="display:inline-block;padding:10px;border:2px solid #764ba2;border-radius:8px;background:#f5f5f5;margin:5px;">`;
+                        html += `<div style="display:inline-block;padding:10px;border:2px solid #00674F;border-radius:8px;background:#f5f5f5;margin:5px;">`;
                         html += `<div style="font-size:11px;">${escapeHtml(token.substring(0, 20))}</div>`;
                         html += `<div style="font-size:9px;color:#666;">Depth ${i+1}</div>`;
                         html += '</div>';
